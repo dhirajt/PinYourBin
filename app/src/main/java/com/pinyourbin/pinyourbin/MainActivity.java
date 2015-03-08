@@ -3,7 +3,6 @@ package com.pinyourbin.pinyourbin;
 import android.app.Activity;
 import android.location.Location;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -83,15 +82,12 @@ public class MainActivity extends Activity implements LocationListener {
 
             locationTopHeading.setText("You want a bin at");
             locationText.setText(latitude + ", " + longitude);
-            Log.i(TAG, Boolean.toString(manager.isGPSEnabled) + "<---------");
         } else if (manager.isGPSEnabled){
             locationTopHeading.setText("You want a bin at");
             locationText
                     .setText("Waiting for location ...");
-            Log.i(TAG, Boolean.toString(manager.isGPSEnabled) + "<---------");
         } else {
             locationText.setText("Couldn't get your location.\nMake sure location is enabled on the device");
-            Log.i(TAG, Boolean.toString(manager.isGPSEnabled) + "<---------");
         }
     }
 
@@ -102,19 +98,16 @@ public class MainActivity extends Activity implements LocationListener {
         if (pybGoogleApiClient != null) {
             pybGoogleApiClient.connect();
         }
-        Log.i(TAG, "onStart()");
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         pybGoogleApiClientBuilder.checkPlayServices(this);
-        Log.i(TAG, "onResume()");
     }
 
     @Override
     public void onLocationChanged(Location location) {
-        Log.i(TAG, "onLocationChanged()");
         if (location != null) {
             Toast.makeText(getApplicationContext(), "Location changed!",
                     Toast.LENGTH_SHORT).show();

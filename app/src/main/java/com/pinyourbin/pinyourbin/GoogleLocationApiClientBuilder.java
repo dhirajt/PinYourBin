@@ -47,7 +47,7 @@ public class GoogleLocationApiClientBuilder implements GoogleApiClient.OnConnect
     }
 
     public void onConnectionFailed(ConnectionResult result) {
-        Log.i("Activity Error:","Connection failed: ConnectionResult.getErrorCode() = "
+        Log.e("Activity Error:","Connection failed: ConnectionResult.getErrorCode() = "
                 + result.getErrorCode());
     }
 
