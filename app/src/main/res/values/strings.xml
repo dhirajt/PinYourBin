@@ -3,4 +3,8 @@
 
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
+    <string name="locationTopHeading">You want a bin at</string>
+    <string name="appFont">monospace</string>
+
+
 </resources>
