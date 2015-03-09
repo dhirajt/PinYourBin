@@ -1,6 +1,8 @@
 package com.pinyourbin.pinyourbin;
 
 import android.app.Activity;
+import android.location.Address;
+import android.location.Geocoder;
 import android.location.Location;
 import android.os.Bundle;
 import android.view.View;
@@ -13,6 +15,10 @@ import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 
+import java.io.IOException;
+import java.util.List;
+import java.util.Locale;
+
 public class MainActivity extends Activity implements LocationListener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
@@ -24,6 +30,7 @@ public class MainActivity extends Activity implements LocationListener {
 
     private TextView locationTopHeading;
     private TextView locationText;
+    private TextView locationAddressText;
     private Button locationTapButton;
 
     private LocationRequest mLocationRequest;
@@ -41,6 +48,7 @@ public class MainActivity extends Activity implements LocationListener {
 
         locationTopHeading = (TextView) findViewById(R.id.locationTopHeading);
         locationText = (TextView) findViewById(R.id.locationText);
+        locationAddressText = (TextView) findViewById(R.id.locationAddressText);
         locationTapButton = (Button) findViewById(R.id.locationTapButton);
 
         pybGoogleApiClientBuilder = new GoogleLocationApiClientBuilder();
@@ -81,8 +89,15 @@ public class MainActivity extends Activity implements LocationListener {
             double longitude = pybLocation.getLongitude();
 
             locationTopHeading.setText("You want a bin at");
-            locationText.setText(latitude + ", " + longitude);
-        } else if (manager.isGPSEnabled){
+
+            String address = getAddressFromLocation(pybLocation);
+
+            locationText.setText("(" + latitude + ", " + longitude + ")");
+
+            if (address != null) {
+                locationAddressText.setText(address);
+            }
+        } else if (manager.isGPSEnabled) {
             locationTopHeading.setText("You want a bin at");
             locationText
                     .setText("Waiting for location ...");
@@ -112,7 +127,40 @@ public class MainActivity extends Activity implements LocationListener {
             Toast.makeText(getApplicationContext(), "Location changed!",
                     Toast.LENGTH_SHORT).show();
             this.pybLocation = location;
-            locationText.setText(location.getLatitude() + ", " + location.getLongitude());
+            String address = getAddressFromLocation(location);
+
+            locationText.setText("("+location.getLatitude() + ", " + location.getLongitude()+")");
+            if (address != null) {
+                locationAddressText.setText(address);
+            }
         }
+    }
+
+    public String getAddressFromLocation(Location location){
+        String humanReadableAddress = null;
+        Geocoder gcd = new Geocoder(getBaseContext(), Locale.getDefault());
+        List<Address> addresses;
+
+        try {
+            addresses = gcd.getFromLocation(location.getLatitude(),
+                    location.getLongitude(), 1);
+
+            if (!(addresses == null || addresses.isEmpty())) {
+                Address address = addresses.get(0);
+
+                humanReadableAddress = "";
+                int maxLines = address.getMaxAddressLineIndex();
+                for (int lineNum = 0; lineNum<=maxLines; lineNum++){
+                    humanReadableAddress += address.getAddressLine(lineNum);
+                    if (lineNum != maxLines) {
+                        humanReadableAddress +=  ", ";
+                    }
+                }
+            }
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+        return humanReadableAddress;
     }
 }
