@@ -1,6 +1,8 @@
 package com.pinyourbin.pinyourbin;
 
 import android.app.Activity;
+import android.content.ContentValues;
+import android.database.sqlite.SQLiteDatabase;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
@@ -14,6 +16,7 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.pinyourbin.pinyourbin.PYBDbSchema.BinEntry;
 
 import java.io.IOException;
 import java.util.List;
@@ -96,6 +99,7 @@ public class MainActivity extends Activity implements LocationListener {
 
             if (address != null) {
                 locationAddressText.setText(address);
+                saveLocation(latitude,longitude);
             }
         } else if (manager.isGPSEnabled) {
             locationTopHeading.setText("You want a bin at");
@@ -104,6 +108,24 @@ public class MainActivity extends Activity implements LocationListener {
         } else {
             locationText.setText("Couldn't get your location.\nMake sure location is enabled on the device");
         }
+    }
+
+    private void saveLocation(double latitude,double longitude){
+        DeviceID device = DeviceID.getDeviceID();
+
+        PYBDbHelper dbHelper = new PYBDbHelper(getBaseContext());
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+
+        long insertID = 0L;
+
+        long unixTime = System.currentTimeMillis() / 1000L;
+
+        ContentValues values = new ContentValues();
+        values.put(BinEntry.COLUMN_NAME_LATITUDE, latitude);
+        values.put(BinEntry.COLUMN_NAME_LONGITUDE, longitude);
+        values.put(BinEntry.COLUMN_NAME_UNIX_TIMESTAMP, unixTime);
+
+        insertID = db.insert(BinEntry.TABLE_NAME,null,values);
     }
 
     @Override
@@ -132,6 +154,7 @@ public class MainActivity extends Activity implements LocationListener {
             locationText.setText("("+location.getLatitude() + ", " + location.getLongitude()+")");
             if (address != null) {
                 locationAddressText.setText(address);
+                saveLocation(location.getLatitude(),location.getLongitude());
             }
         }
     }
