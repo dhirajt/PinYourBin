@@ -1,4 +1,4 @@
-# PinYourBin
+# PinYourBin               [![Build Status](https://travis-ci.org/dhirajt/PinYourBin.svg)](https://travis-ci.org/dhirajt/PinYourBin)
 An android app to reduce garbage(well, an attempt really).
 
 Development Notes
