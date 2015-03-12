@@ -17,6 +17,11 @@ import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.pinyourbin.pinyourbin.PYBDbSchema.BinEntry;
+import com.squareup.okhttp.Callback;
+import com.squareup.okhttp.MediaType;
+import com.squareup.okhttp.OkHttpClient;
+import com.squareup.okhttp.Request;
+import com.squareup.okhttp.Response;
 
 import java.io.IOException;
 import java.util.List;
@@ -25,6 +30,8 @@ import java.util.Locale;
 public class MainActivity extends Activity implements LocationListener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
+    public static final MediaType JSON
+            = MediaType.parse("application/json; charset=utf-8");
 
     private Location pybLocation;
 
@@ -41,8 +48,11 @@ public class MainActivity extends Activity implements LocationListener {
 
     // Location updates intervals in sec
     private static int UPDATE_INTERVAL = 10000; // 10 sec
-    private static int FATEST_INTERVAL = 5000; // 5 sec
+    private static int FASTEST_INTERVAL = 5000; // 5 sec
     private static int DISPLACEMENT = 10; // 10 meters
+
+    private static String PYBBackendURL = "http://10.0.2.2:5000"; //host url (android studio->localhost)
+    private final OkHttpClient client = new OkHttpClient();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,7 +90,7 @@ public class MainActivity extends Activity implements LocationListener {
         mLocationRequest = LocationRequest.create();
             mLocationRequest.setNumUpdates(1);
             mLocationRequest.setInterval(UPDATE_INTERVAL);
-            mLocationRequest.setFastestInterval(FATEST_INTERVAL);
+            mLocationRequest.setFastestInterval(FASTEST_INTERVAL);
             mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
             mLocationRequest.setSmallestDisplacement(DISPLACEMENT);
 
@@ -110,7 +120,7 @@ public class MainActivity extends Activity implements LocationListener {
         }
     }
 
-    private void saveLocation(double latitude,double longitude){
+    private void saveLocation(double latitude,double longitude) {
         DeviceID device = DeviceID.getDeviceID();
 
         PYBDbHelper dbHelper = new PYBDbHelper(getBaseContext());
@@ -126,6 +136,33 @@ public class MainActivity extends Activity implements LocationListener {
         values.put(BinEntry.COLUMN_NAME_UNIX_TIMESTAMP, unixTime);
 
         insertID = db.insert(BinEntry.TABLE_NAME,null,values);
+
+        try {
+            syncBinsToServer();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void syncBinsToServer() throws IOException {
+        Request request = new Request.Builder()
+                .url(PYBBackendURL)
+                .header("User-Agent", "OkHttp PinYourBin")
+                .addHeader("Accept", "application/json;")
+                .build();
+
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Request request, IOException exception) {
+                exception.printStackTrace();
+            }
+
+            @Override
+            public void onResponse(Response response) throws IOException {
+                if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
+                // TODO on successful response sync the bins stored in db on server
+            }
+        });
     }
 
     @Override
