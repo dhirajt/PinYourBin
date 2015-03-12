@@ -21,6 +21,9 @@ android {
         exclude 'META-INF/license/THIRD-PARTY.txt'
     }
 
+    lintOptions {
+        abortOnError false
+    }
 }
 
 dependencies {
