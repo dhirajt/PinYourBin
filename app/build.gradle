@@ -19,6 +19,8 @@ android {
     }
     packagingOptions {
         exclude 'META-INF/license/THIRD-PARTY.txt'
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/NOTICE'
     }
 
     lintOptions {
@@ -32,7 +34,9 @@ dependencies {
     compile 'com.google.android.gms:play-services:6.5.87'
 
     // Third party libs
-    compile 'com.cedarsoft.serialization:jackson:6.2.0'
     compile 'com.squareup.okhttp:okhttp:2.2.0'
+    compile 'com.fasterxml.jackson.core:jackson-databind:2.5.1'
+    compile 'com.fasterxml.jackson.core:jackson-core:2.5.1'
+    compile 'com.fasterxml.jackson.core:jackson-annotations:2.5.1'
 
 }

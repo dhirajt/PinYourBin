@@ -2,6 +2,7 @@ package com.pinyourbin.pinyourbin;
 
 import android.app.Activity;
 import android.content.ContentValues;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.location.Address;
 import android.location.Geocoder;
@@ -12,6 +13,7 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
@@ -21,16 +23,19 @@ import com.squareup.okhttp.Callback;
 import com.squareup.okhttp.MediaType;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
+import com.squareup.okhttp.RequestBody;
 import com.squareup.okhttp.Response;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 
 public class MainActivity extends Activity implements LocationListener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
-    public static final MediaType JSON
+    public static final MediaType MEDIA_TYPE_JSON
             = MediaType.parse("application/json; charset=utf-8");
 
     private Location pybLocation;
@@ -53,6 +58,9 @@ public class MainActivity extends Activity implements LocationListener {
 
     private static String PYBBackendURL = "http://10.0.2.2:5000"; //host url (android studio->localhost)
     private final OkHttpClient client = new OkHttpClient();
+
+    DeviceInterface device = DeviceInterface.getDeviceInterface();
+    private PYBDbHelper dbHelper = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -78,6 +86,8 @@ public class MainActivity extends Activity implements LocationListener {
                 displayLocation();
             }
         });
+
+        dbHelper = new PYBDbHelper(getApplicationContext());
     }
 
 
@@ -109,24 +119,26 @@ public class MainActivity extends Activity implements LocationListener {
 
             if (address != null) {
                 locationAddressText.setText(address);
-                saveLocation(latitude,longitude);
+            } else {
+                locationAddressText.setText("");
             }
+
+            saveLocation(latitude,longitude);
+
         } else if (manager.isGPSEnabled) {
             locationTopHeading.setText("You want a bin at");
-            locationText
-                    .setText("Waiting for location ...");
+            locationText.setText("Waiting for location ...");
         } else {
             locationText.setText("Couldn't get your location.\nMake sure location is enabled on the device");
         }
     }
 
     private void saveLocation(double latitude,double longitude) {
-        DeviceID device = DeviceID.getDeviceID();
+        DeviceInterface device = DeviceInterface.getDeviceInterface();
 
-        PYBDbHelper dbHelper = new PYBDbHelper(getBaseContext());
         SQLiteDatabase db = dbHelper.getWritableDatabase();
 
-        long insertID = 0L;
+        long insertID = -1L;
 
         long unixTime = System.currentTimeMillis() / 1000L;
 
@@ -134,23 +146,82 @@ public class MainActivity extends Activity implements LocationListener {
         values.put(BinEntry.COLUMN_NAME_LATITUDE, latitude);
         values.put(BinEntry.COLUMN_NAME_LONGITUDE, longitude);
         values.put(BinEntry.COLUMN_NAME_UNIX_TIMESTAMP, unixTime);
+        values.put(BinEntry.COLUMN_NAME_DEVICE_ID, device.id(getApplicationContext()));
 
-        insertID = db.insert(BinEntry.TABLE_NAME,null,values);
+        String query = dbHelper.getIdIfRowExistsQuery(latitude,longitude);
+        Cursor cursor = db.rawQuery(query,null);
+
+        while (cursor.moveToNext()) {  // If no element in cursor it should exit
+            insertID = cursor.getColumnIndex(BinEntry.COLUMN_NAME_DB_ID);
+        }
+        cursor.close();
+
+        if (insertID == -1L) {
+            insertID = db.insert(BinEntry.TABLE_NAME, null, values);
+        }
 
         try {
-            syncBinsToServer();
+            if (insertID >= device.getLastSyncedDbId(getApplicationContext())+5) {
+                // Sync only if saved bin id is at least 5 more than last insert (to cut down network calls)
+                // TODO: find a better strategy later
+                syncBinsToServer();
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
+        db.close();
     }
 
     public void syncBinsToServer() throws IOException {
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+
+        long syncFromId = device.getLastSyncedDbId(getApplicationContext());
+
+        String query = dbHelper.getRowsFromIdQuery(syncFromId);
+
+        Cursor cursor = db.rawQuery(query,null);
+
+        ArrayList listOfBins = new ArrayList();
+
+        long lastSyncedId = 0;
+        String deviceId = null;
+
+        while (cursor.moveToNext()) {
+            HashMap<String,String> bin = new HashMap<String,String>();
+            int id = Integer.parseInt(cursor.getString(cursor.getColumnIndex(BinEntry.COLUMN_NAME_DB_ID)));
+
+            if (id > lastSyncedId) {
+                lastSyncedId = id;
+            }
+            bin.put(BinEntry.COLUMN_NAME_LATITUDE,
+                    cursor.getString(cursor.getColumnIndex(BinEntry.COLUMN_NAME_LATITUDE)));
+            bin.put(BinEntry.COLUMN_NAME_LONGITUDE,
+                    cursor.getString(cursor.getColumnIndex(BinEntry.COLUMN_NAME_LONGITUDE)));
+            bin.put(BinEntry.COLUMN_NAME_UNIX_TIMESTAMP,
+                    cursor.getString(cursor.getColumnIndex(BinEntry.COLUMN_NAME_UNIX_TIMESTAMP)));
+            bin.put(BinEntry.COLUMN_NAME_DEVICE_ID,
+                    cursor.getString(cursor.getColumnIndex(BinEntry.COLUMN_NAME_DEVICE_ID)));
+
+            if (bin.get(BinEntry.COLUMN_NAME_DEVICE_ID)!=null) {
+                deviceId = bin.get(BinEntry.COLUMN_NAME_DEVICE_ID);
+            }
+            listOfBins.add(bin);
+        }
+        cursor.close();
+
+        String json = null;
+
+        ObjectMapper mapper=new ObjectMapper();
+        json = mapper.writeValueAsString(listOfBins);
+
         Request request = new Request.Builder()
                 .url(PYBBackendURL)
-                .header("User-Agent", "OkHttp PinYourBin")
+                .header("User-Agent", "OkHttp PinYourBin "+ deviceId)
                 .addHeader("Accept", "application/json;")
+                .post(RequestBody.create(MEDIA_TYPE_JSON,json))
                 .build();
 
+        final long finalLastSyncedId = lastSyncedId;
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(Request request, IOException exception) {
@@ -160,9 +231,11 @@ public class MainActivity extends Activity implements LocationListener {
             @Override
             public void onResponse(Response response) throws IOException {
                 if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
-                // TODO on successful response sync the bins stored in db on server
+
+                device.setLastSyncedDbId(getApplicationContext(), finalLastSyncedId);
             }
         });
+        db.close();
     }
 
     @Override
@@ -192,13 +265,15 @@ public class MainActivity extends Activity implements LocationListener {
             if (address != null) {
                 locationAddressText.setText(address);
                 saveLocation(location.getLatitude(),location.getLongitude());
+            } else {
+                locationAddressText.setText("");
             }
         }
     }
 
     public String getAddressFromLocation(Location location){
         String humanReadableAddress = null;
-        Geocoder gcd = new Geocoder(getBaseContext(), Locale.getDefault());
+        Geocoder gcd = new Geocoder(getApplicationContext(), Locale.getDefault());
         List<Address> addresses;
 
         try {

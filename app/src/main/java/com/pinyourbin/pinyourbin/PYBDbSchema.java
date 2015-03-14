@@ -16,6 +16,7 @@ public class PYBDbSchema {
         public static final String COLUMN_NAME_LATITUDE = "latitude";
         public static final String COLUMN_NAME_LONGITUDE = "longitude";
         public static final String COLUMN_NAME_UNIX_TIMESTAMP = "timestamp"; //utc timestamp
+        public static final String COLUMN_NAME_DEVICE_ID = "device_id";
     }
 }
 

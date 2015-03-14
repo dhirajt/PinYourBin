@@ -13,9 +13,10 @@ public class PYBDbHelper extends SQLiteOpenHelper {
     public static final int DATABASE_VERSION = 1;
     public static final String DATABASE_NAME = "PinYourBin.db";
 
-    private static final String COORDINATE_TYPE = " DECIMAL(8,5)";
+    private static final String COORDINATE_TYPE = " DECIMAL(8,5) NOT NULL";
+    private static final String TIMESTAMP_TYPE = " INTEGER MOT NULL";
+    private static final String DEVICE_ID_TYPE = " BLOB NOT NULL";
     private static final String COMMA_SEP = ",";
-    private static final String TIMESTAMP_TYPE = " INTEGER";
 
     private static final String BIN_ENTRY_SQL_CREATE_ENTRIES =
             "CREATE TABLE " + BinEntry.TABLE_NAME + " (" +
@@ -23,8 +24,8 @@ public class PYBDbHelper extends SQLiteOpenHelper {
                     BinEntry.COLUMN_NAME_LATITUDE + COORDINATE_TYPE + COMMA_SEP +
                     BinEntry.COLUMN_NAME_LONGITUDE + COORDINATE_TYPE + COMMA_SEP +
                     BinEntry.COLUMN_NAME_UNIX_TIMESTAMP + TIMESTAMP_TYPE + COMMA_SEP +
-                    " UNIQUE (" +BinEntry.COLUMN_NAME_LATITUDE+COMMA_SEP+BinEntry.COLUMN_NAME_LATITUDE+
-                    ") ON CONFLICT IGNORE )";
+                    BinEntry.COLUMN_NAME_DEVICE_ID + DEVICE_ID_TYPE +
+            ")";
 
     private static final String BIN_ENTRY_SQL_DELETE_ENTRIES =
             "DROP TABLE IF EXISTS " + BinEntry.TABLE_NAME;
@@ -46,5 +47,22 @@ public class PYBDbHelper extends SQLiteOpenHelper {
 
     public void onDowngrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         onUpgrade(db, oldVersion, newVersion);
+    }
+    public String getRowsFromIdQuery(long id) {
+
+        return "SELECT " + BinEntry.COLUMN_NAME_DB_ID + COMMA_SEP +
+                           BinEntry.COLUMN_NAME_LATITUDE + COMMA_SEP +
+                           BinEntry.COLUMN_NAME_LONGITUDE + COMMA_SEP +
+                           BinEntry.COLUMN_NAME_UNIX_TIMESTAMP + COMMA_SEP +
+                           BinEntry.COLUMN_NAME_DEVICE_ID +
+               " FROM "+ BinEntry.TABLE_NAME +
+               " WHERE "+ BinEntry.COLUMN_NAME_DB_ID+ ">=" + id;
+    }
+
+    public String getIdIfRowExistsQuery(double latitude,double longitude) {
+        return "SELECT " + BinEntry.COLUMN_NAME_DB_ID +
+                " FROM "+ BinEntry.TABLE_NAME +
+                " WHERE "+ BinEntry.COLUMN_NAME_LATITUDE+ "=" + Double.toString(latitude) +
+                    " AND "+ BinEntry.COLUMN_NAME_LONGITUDE+ "=" + Double.toString(longitude) ;
     }
 }
