@@ -56,7 +56,7 @@ public class MainActivity extends Activity implements LocationListener {
     private static int FASTEST_INTERVAL = 5000; // 5 sec
     private static int DISPLACEMENT = 10; // 10 meters
 
-    private static String PYBBackendURL = "http://10.0.2.2:5000"; //host url (android studio->localhost)
+    private static String PYBBackendURL = "http://10.0.2.2:5000/save/location/"; //host url (android studio->localhost)
     private final OkHttpClient client = new OkHttpClient();
 
     DeviceInterface device = DeviceInterface.getDeviceInterface();

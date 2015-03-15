@@ -56,7 +56,7 @@ public class PYBDbHelper extends SQLiteOpenHelper {
                            BinEntry.COLUMN_NAME_UNIX_TIMESTAMP + COMMA_SEP +
                            BinEntry.COLUMN_NAME_DEVICE_ID +
                " FROM "+ BinEntry.TABLE_NAME +
-               " WHERE "+ BinEntry.COLUMN_NAME_DB_ID+ ">=" + id;
+               " WHERE "+ BinEntry.COLUMN_NAME_DB_ID+ ">" + id;
     }
 
     public String getIdIfRowExistsQuery(double latitude,double longitude) {
