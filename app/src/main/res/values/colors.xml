@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="appBackgroundColor">#fff</color>
-    <color name="tapButtonTextColor">#fff</color>
-    <color name="tapButtonBackground">#ff0066</color>
+    <color name="white">#FFF</color>
+    <color name="black">#000</color>
+    <color name="darkOrange">#F6901E</color>
+    <color name="lightOrange">#FCB614</color>
 </resources>

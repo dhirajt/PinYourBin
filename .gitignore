@@ -27,3 +27,6 @@ proguard/
 
 # Idea files
 .idea/
+
+# project specific files
+app/src/main/res/values/api_keys.xml

@@ -5,6 +5,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.location.GpsStatus;
 import android.location.LocationManager;
 
 /**
@@ -21,6 +22,22 @@ public class PYBLocationManager {
             isGPSEnabled = false;
             buildAlertMessageNoGps(activity,manager);
         }
+
+        manager.addGpsStatusListener(new GpsStatus.Listener()
+        {
+            public void onGpsStatusChanged(int event)
+            {
+                switch(event)
+                {
+                    case GpsStatus.GPS_EVENT_STARTED:
+                        isGPSEnabled = true;
+                        break;
+                    case GpsStatus.GPS_EVENT_STOPPED:
+                        isGPSEnabled = false;
+                        break;
+                }
+            }
+        });
     }
 
     private void buildAlertMessageNoGps(final Activity activity,final LocationManager manager) {
