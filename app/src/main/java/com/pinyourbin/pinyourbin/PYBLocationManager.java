@@ -42,17 +42,18 @@ public class PYBLocationManager {
 
     private void buildAlertMessageNoGps(final Activity activity,final LocationManager manager) {
         final AlertDialog.Builder builder = new AlertDialog.Builder(activity);
-        builder.setMessage("Your GPS seems to be disabled. PinYourBin requires your location to " +
-                "accurately pin the place. Enable the GPS?")
+        builder.setTitle("Use location services?")
+                .setMessage("Location services are currently disabled. PinYourBin requires your location to " +
+                "accurately pin the place.")
                 .setCancelable(false)
-                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                .setPositiveButton("AGREE", new DialogInterface.OnClickListener() {
                     public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
                         activity.startActivity(new Intent(
                                 android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS));
                         isGPSEnabled = manager.isProviderEnabled( LocationManager.GPS_PROVIDER );
                     }
                 })
-                .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                .setNegativeButton("DISAGREE", new DialogInterface.OnClickListener() {
                     public void onClick(final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
                         dialog.cancel();
                     }

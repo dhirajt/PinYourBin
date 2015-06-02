@@ -2,19 +2,24 @@ package com.pinyourbin.pinyourbin;
 
 import android.app.AlertDialog;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -29,6 +34,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.pinyourbin.pinyourbin.PYBDbSchema.BinEntry;
@@ -70,7 +76,7 @@ public class MainActivity extends ActionBarActivity implements LocationListener,
     private static int FASTEST_INTERVAL = 5000; // 5 sec
     private static int DISPLACEMENT = 10; // 10 meters
 
-    private static String PYBBackendURL = "http://10.0.2.2:5000/save/location/"; //host url (android studio->localhost)
+    private static String PYBBackendURL = "http://128.199.93.193//save/location/"; //host url (android studio->localhost)
     private final OkHttpClient client = new OkHttpClient();
 
     DeviceInterface device = DeviceInterface.getDeviceInterface();
@@ -88,10 +94,14 @@ public class MainActivity extends ActionBarActivity implements LocationListener,
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_main);
 
-        getSupportActionBar().setDisplayHomeAsUpEnabled(false);
-        getSupportActionBar().setHomeButtonEnabled(false);
+        ActionBar actionBar = getSupportActionBar();
+        actionBar.setHomeButtonEnabled(false);
+        actionBar.setDisplayHomeAsUpEnabled(false);
+        // actionBar.setDisplayShowHomeEnabled(true);
+        // actionBar.setIcon(R.drawable.ic_action_bar_icon);
 
         locationText = (TextView) findViewById(R.id.locationText);
         locationAddressText = (TextView) findViewById(R.id.locationAddressText);
@@ -153,10 +163,55 @@ public class MainActivity extends ActionBarActivity implements LocationListener,
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-    // Inflate the menu items for use in the action bar
+        // Inflate the menu items for use in the action bar
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.main_activity_actions, menu);
         return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle item selection
+        switch (item.getItemId()) {
+            case R.id.action_help:
+                showHowItWorks();
+                return true;
+            case R.id.action_about:
+                showAbout();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    private void showAbout() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(R.string.about_title)
+                .setMessage(R.string.about_message)
+                .setCancelable(false)
+                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    public void onClick(final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                        dialog.cancel();
+                    }
+                })
+                .setIcon(R.drawable.ic_action_bar_icon);
+        final AlertDialog alert = builder.create();
+        alert.show();
+    }
+
+    private void showHowItWorks() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(R.string.howitworks_title)
+                .setMessage(R.string.howitworks_message)
+                .setCancelable(false)
+                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    public void onClick(final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                        dialog.cancel();
+                    }
+                })
+                .setIcon(R.drawable.ic_action_bar_icon);
+        final AlertDialog alert = builder.create();
+        alert.show();
     }
 
     // Method to display location in UI
@@ -181,7 +236,7 @@ public class MainActivity extends ActionBarActivity implements LocationListener,
             LatLng latlang = new LatLng(pybLocation.getLatitude(), pybLocation.getLongitude());
             map.moveCamera(CameraUpdateFactory.newLatLng(latlang));
 
-            if (Geocoder.isPresent()) {
+            if (Geocoder.isPresent() && hasNetworkConnection()) {
                 new ReverseGeocodingTask().execute(pybLocation);
             }
             locationText.setText(latitude + ", " + longitude);
@@ -189,7 +244,7 @@ public class MainActivity extends ActionBarActivity implements LocationListener,
             locationText.setText("");
         } else {
             Toast.makeText(getApplicationContext(),
-                    "Couldn't get your location.Make sure location is enabled on the device",
+                    "Couldn't get your location. Make sure location is enabled on the device",
                     Toast.LENGTH_SHORT).show();
         }
     }
@@ -226,9 +281,10 @@ public class MainActivity extends ActionBarActivity implements LocationListener,
                         Toast.LENGTH_SHORT).show();
 
                 map.addMarker(new MarkerOptions()
-                        .position(new LatLng(latitude,longitude))
+                        .position(new LatLng(latitude, longitude))
                         .draggable(false)
-                        .title(Double.toString(latitude)+", "+Double.toString(longitude)));
+                        .title(Double.toString(latitude) + ", " + Double.toString(longitude))
+                        .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_action_bar_icon)));
             }
         }
 
@@ -360,6 +416,23 @@ public class MainActivity extends ActionBarActivity implements LocationListener,
         db.close();
     }
 
+    private boolean hasNetworkConnection() {
+        boolean hasConnectedWifi = false;
+        boolean hasConnectedMobile = false;
+
+        ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo[] netInfo = cm.getAllNetworkInfo();
+        for (NetworkInfo ni : netInfo) {
+            if (ni.getTypeName().equalsIgnoreCase("WIFI"))
+                if (ni.isConnected())
+                    hasConnectedWifi = true;
+            if (ni.getTypeName().equalsIgnoreCase("MOBILE"))
+                if (ni.isConnected())
+                    hasConnectedMobile = true;
+        }
+        return hasConnectedWifi || hasConnectedMobile;
+    }
+
     @Override
     protected void onStart() {
         super.onStart();
@@ -386,7 +459,7 @@ public class MainActivity extends ActionBarActivity implements LocationListener,
             locationText.setText(location.getLatitude() + ", " + location.getLongitude());
 
             new saveLocation().execute(location,null,location);
-            if (Geocoder.isPresent()) {
+            if (Geocoder.isPresent() && hasNetworkConnection()) {
                 new ReverseGeocodingTask().execute(location);
             }
         }
@@ -400,7 +473,7 @@ public class MainActivity extends ActionBarActivity implements LocationListener,
             map.moveCamera(CameraUpdateFactory.newLatLng(latlang));
 
             locationText.setText(location.getLatitude() + ", " + location.getLongitude());
-            if (Geocoder.isPresent()) {
+            if (Geocoder.isPresent() && hasNetworkConnection()) {
                 new ReverseGeocodingTask().execute(location);
             }
         }
@@ -422,7 +495,7 @@ public class MainActivity extends ActionBarActivity implements LocationListener,
             } catch (IOException e) {
                 e.printStackTrace();
                 // Update UI field with the exception.
-                Message.obtain(mHandler, UPDATE_ADDRESS, "Failed to retrieve address.").sendToTarget();
+                Message.obtain(mHandler, UPDATE_ADDRESS, "Waiting for address ...").sendToTarget();
             }
             if (addresses != null && addresses.size() > 0) {
                 Address address = addresses.get(0);

@@ -24,7 +24,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceSmall"
-            android:text="LATITUDE, LONGITUDE"
+            android:text="LOCATION"
             android:id="@+id/textView"
             android:textStyle="bold"
             android:paddingLeft="5dp"
@@ -70,12 +70,12 @@
         android:layout_height="310dp"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
-        android:layout_marginTop="148dp" />
+        android:layout_marginTop="141dp" />
 
     <RelativeLayout
         android:orientation="horizontal"
         android:layout_width="fill_parent"
-        android:layout_height="120dp"
+        android:layout_height="160dp"
         android:paddingTop="10dp"
         android:paddingBottom="10dp"
         android:layout_below="@+id/mapfragment"
@@ -83,11 +83,16 @@
         android:weightSum="1">
 
         <Button
-            android:layout_width="215dp"
+            android:layout_width="160dp"
             android:layout_height="160dp"
-            android:text="Tap to place a bin"
+            android:text="PIN YOUR BIN"
             android:id="@+id/locationTapButton"
             android:layout_gravity="center"
+            android:textColor="@color/white"
+            android:elevation="1dp"
+            android:translationZ="1dp"
+            android:radius="10dp"
+            android:background="@color/lightGreen"
             android:textAlignment="center"
             android:paddingTop="5dp"
             android:paddingBottom="5dp"

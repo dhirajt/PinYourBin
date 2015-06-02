@@ -8,7 +8,30 @@
 
 
     <string name="action_about">About</string>
-    <string name="title_activity_maps">Map</string>
+    <string name="about_title">About</string>
+    <string name="about_message">
+        PinYourBin v1.0
 
+        License: <a href="https://raw.githubusercontent.com/dhirajt/PinYourBin/master/LICENSE">GNU GPL v3</a>
+
+        \n\nPinYourBin is a social app to place virtual dustbins.
+        \n\nDecide where should a bin be placed by pining a dustbin.
+        \n\nMore pins in a geographic area mean higher chances of its installation.
+        \n\nLet\'s make our planet clean!
+
+        \n\nDhiraj Thakur, Anshul Singh and contributors.
+        \nSe7en Inc.
+    </string>
+
+    <string name="action_howitworks">How it works</string>
+
+    <string name="howitworks_title">How it works</string>
+    <string name="howitworks_message">
+        You turn on your location services and place a bin where you feel there should be dustbin.
+        \n\nThe pinned data from all users is collected at out servers where it is aggregated and stored.
+        \n\nAs more bins are placed the app will recommend places to set up dustbins which will
+          ultimately prevent litter.
+        \n\nHope you see a lot of bins!
+    </string>
 
 </resources>

@@ -3,7 +3,7 @@
     <!-- Base application theme. -->
     <style name="AppTheme" parent="@style/Theme.AppCompat.Light.DarkActionBar">
         <item name="android:actionBarStyle">@style/ActionBar</item>
-        <item name="android:actionBarSize">40dp</item>
+        <item name="android:actionBarSize">48dp</item>
         <item name="android:windowContentOverlay">@null</item>
 
         <!-- Support library compatibility -->
@@ -12,17 +12,18 @@
     </style>
 
     <style name="ActionBar" parent="@style/Widget.AppCompat.Light.ActionBar.Solid.Inverse">
-        <item name="android:background">@color/darkOrange</item>
+        <item name="android:background">@color/lightGreen</item>
+
         <item name="android:titleTextStyle">@style/ActionBarTitleText</item>
         <item name="elevation">0dp</item>
 
         <!-- Support library compatibility -->
-        <item name="background">@color/darkOrange</item>
+        <item name="background">@color/lightGreen</item>
         <item name="titleTextStyle">@style/ActionBarTitleText</item>
+        <item name="logo">@drawable/ic_action_bar_icon</item>
     </style>
 
-    <style name="ActionBarTitleText"
-        parent="@style/TextAppearance.AppCompat.Widget.ActionBar.Title">
+    <style name="ActionBarTitleText" parent="@style/TextAppearance.AppCompat.Widget.ActionBar.Title">
         <item name="android:textColor">@color/white</item>
         <item name="android:textSize">15sp</item>
     </style>
