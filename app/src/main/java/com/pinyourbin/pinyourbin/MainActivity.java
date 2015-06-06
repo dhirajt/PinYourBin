@@ -1,6 +1,7 @@
 package com.pinyourbin.pinyourbin;
 
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -251,7 +252,7 @@ public class MainActivity extends ActionBarActivity implements LocationListener,
 
     private class saveLocation extends AsyncTask<Location,Void,Location> {
 
-        private AlertDialog dialog;
+        private AlertDialog distanceDialog;
         boolean showDialog = false;
 
         private AlertDialog makeDistanceDialog() {
@@ -267,17 +268,28 @@ public class MainActivity extends ActionBarActivity implements LocationListener,
             return builder.create();
         }
 
+        String progressMessage = "Saving bin location...";
+        final ProgressDialog progressDialog = new ProgressDialog(MainActivity.this);
+
+        @Override
+        protected void onPreExecute() {
+            progressDialog.setMessage(progressMessage);
+            progressDialog.show();
+            super.onPreExecute();
+        }
+
         @Override
         protected void onPostExecute(Location location) {
             if (showDialog) {
-                dialog = makeDistanceDialog();
-                dialog.show();
+                distanceDialog = makeDistanceDialog();
+                progressDialog.dismiss();
+                distanceDialog.show();
             } else {
                 double latitude = location.getLatitude();
                 double longitude = location.getLongitude();
 
                 Toast.makeText(getApplicationContext(),
-                        "Saving location",
+                        "Location saved",
                         Toast.LENGTH_SHORT).show();
 
                 map.addMarker(new MarkerOptions()
@@ -285,6 +297,7 @@ public class MainActivity extends ActionBarActivity implements LocationListener,
                         .draggable(false)
                         .title(Double.toString(latitude) + ", " + Double.toString(longitude))
                         .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_action_bar_icon)));
+                progressDialog.dismiss();
             }
         }
 
