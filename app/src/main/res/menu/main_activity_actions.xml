@@ -2,12 +2,23 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
       xmlns:pinyourbin="http://schemas.android.com/apk/res-auto">
 
-    <item android:id="@+id/action_help"
-        android:title="@string/action_howitworks"
-        pinyourbin:showAsAction="never"
-        />
+    <item android:id="@+id/action_share"
+        android:title="@string/action_share"
+        android:icon="@drawable/ic_action_share"
+        pinyourbin:showAsAction="ifRoom" />
+
     <item android:id="@+id/action_about"
         android:title="@string/action_about"
+        pinyourbin:showAsAction="never"
+        />
+
+    <item android:id="@+id/send_feedback"
+        android:title="@string/action_send_feedback"
+        pinyourbin:showAsAction="never"
+        />
+
+    <item android:id="@+id/action_help"
+        android:title="@string/action_howitworks"
         pinyourbin:showAsAction="never"
         />
 </menu>

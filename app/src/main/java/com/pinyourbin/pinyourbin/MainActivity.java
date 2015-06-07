@@ -5,6 +5,7 @@ import android.app.ProgressDialog;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.location.Address;
@@ -180,6 +181,11 @@ public class MainActivity extends ActionBarActivity implements LocationListener,
             case R.id.action_about:
                 showAbout();
                 return true;
+            case R.id.send_feedback:
+                sendFeedback();
+                return true;
+            case R.id.action_share:
+                shareText();
             default:
                 return super.onOptionsItemSelected(item);
         }
@@ -213,6 +219,21 @@ public class MainActivity extends ActionBarActivity implements LocationListener,
                 .setIcon(R.drawable.ic_action_bar_icon);
         final AlertDialog alert = builder.create();
         alert.show();
+    }
+
+    private void sendFeedback() {
+        Intent emailIntent = new Intent(Intent.ACTION_SEND);
+        emailIntent.setType("text/email");
+        emailIntent.putExtra(Intent.EXTRA_EMAIL, new String[] { "dhirajk.92@gmail.com" });
+        emailIntent.putExtra(Intent.EXTRA_SUBJECT, "Feedback on PinYourBin");
+        startActivity(Intent.createChooser(emailIntent, "Send feedback via:"));
+    }
+
+    private void shareText() {
+        Intent textIntent = new Intent(Intent.ACTION_SEND);
+        textIntent.setType("text/plain");
+        textIntent.putExtra(Intent.EXTRA_TEXT, getResources().getString(R.string.share_text));
+        startActivity(Intent.createChooser(textIntent, "Tell your friends about PinYourBin via:"));
     }
 
     // Method to display location in UI
@@ -274,6 +295,7 @@ public class MainActivity extends ActionBarActivity implements LocationListener,
         @Override
         protected void onPreExecute() {
             progressDialog.setMessage(progressMessage);
+            progressDialog.setCanceledOnTouchOutside(false);
             progressDialog.show();
             super.onPreExecute();
         }
